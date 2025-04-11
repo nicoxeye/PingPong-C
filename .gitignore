@@ -1,0 +1,26 @@
+# Compiled binaries
+*.exe
+*.out
+*.o
+*.obj
+*.dll
+*.lib
+*.so
+*.a
+
+# Build directories
+/build/
+/bin/
+/dist/
+
+# IDE & Editor files
+*.log
+*.cache
+*.vs/
+*.vscode/
+*.DS_Store
+
+# Raylib compiled libraries (optional)
+raylib.lib
+raylib.dll
+main.code-workspace
