@@ -11,24 +11,47 @@ typedef struct {
     int ball_radius;
 } Ball;
 
+typedef struct{
+    int player;
+    int enemy;
+} Score;
+
+
+void reset_ball(Ball *ball){
+    ball->ballX = screenWidth / 2;
+    ball->ballY = screenHeight / 2;
+
+    int choice[2] = {-1, 1};
+    ball->ball_speed_x *= choice[GetRandomValue(0, 1)];
+    ball->ball_speed_y *= choice[GetRandomValue(0, 1)];
+}
+
 
 void draw_ball(Ball ball){
     DrawCircle(ball.ballX, ball.ballY, ball.ball_radius, WHITE);
 }
 
 
-void ball_movement(Ball *ball){
+void ball_movement(Ball *ball, Score *score){
     ball->ballX += ball->ball_speed_x;
     ball->ballY += ball->ball_speed_y;
 
     // "bouncing of edges", changing direction of the ball if met with the edge of the screen
-    if (ball->ballX + ball->ball_radius >= screenWidth || ball->ballX - ball->ball_radius <= 0) {
-        ball->ball_speed_x *= -1;
-    }
-
     if (ball->ballY + ball->ball_radius >= screenHeight || ball->ballY - ball->ball_radius <= 0) {
         ball->ball_speed_y *= -1;
     }
+    //scoring
+    if (ball->ballX + ball->ball_radius >= screenWidth) {
+        score->enemy++;
+
+        reset_ball(ball);
+    }
+    if (ball->ballX - ball->ball_radius <= 0){
+        score->player++;
+
+        reset_ball(ball);
+    }
+
 }
 
 
@@ -82,6 +105,7 @@ void enemy_paddle_movement(Paddle *paddle, Ball *ball){
 Ball ball;
 Paddle player;
 Paddle enemy;
+Score score;
 
 
 int main(void)
@@ -110,22 +134,25 @@ int main(void)
     enemy.height = 120;
     enemy.speed = 6;
 
+    score.enemy = 0;
+    score.player = 0;
+
     while (!WindowShouldClose())
     {
-        // event handling
-
-
-        // updating positions
-        
-        
-        // draw
         BeginDrawing();
 
-            ClearBackground(VIOLET);
+            ClearBackground(BLACK);
+
+            const char *scoreText = "SCORE";
+            int fontSize = 40;
+            int textWidth = MeasureText(scoreText, fontSize);
+            DrawText(scoreText, (screenWidth - textWidth) / 2, 10, fontSize, WHITE);
+
+            
             DrawLine(screenWidth / 2, 0, screenWidth / 2, screenHeight, WHITE);
 
             draw_ball(ball);
-            ball_movement(&ball);
+            ball_movement(&ball, &score);
 
             // enemy
             draw_paddle(enemy);
@@ -134,6 +161,22 @@ int main(void)
             // player
             draw_paddle(player);
             player_paddle_movement(&player);
+            DrawText(TextFormat("%d", score.player), screenWidth* 3/ 4, 100, 40, WHITE);
+            DrawText(TextFormat("%d", score.enemy), screenWidth / 4, 100, 40, WHITE);
+
+            Vector2 vector = {ball.ballX, ball.ballY};
+            Rectangle rectangle = {player.x, player.y, player.width, player.height};
+
+            // collisison of paddles
+            if (CheckCollisionCircleRec(vector, ball.ball_radius, rectangle)){
+                ball.ball_speed_x *= -1;
+            }
+
+            Rectangle rectangle_enemy = {enemy.x, enemy.y, enemy.width, enemy.height};
+
+            if (CheckCollisionCircleRec(vector, ball.ball_radius, rectangle_enemy)){
+                ball.ball_speed_x *= -1;
+            }
 
         EndDrawing();
     }
