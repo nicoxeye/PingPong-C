@@ -3,6 +3,8 @@
 const int screenWidth = 800;
 const int screenHeight = 600;
 
+typedef enum GameScreen { TITLE = 0, GAMEPLAY} GameScreen;
+
 typedef struct {
     float ballX;
     float ballY;
@@ -110,7 +112,7 @@ Score score;
 
 int main(void)
 {
-
+    GameScreen currentScreen = TITLE;
     InitWindow(screenWidth, screenHeight, "PING PONG");
 
     SetTargetFPS(60);
@@ -139,44 +141,64 @@ int main(void)
 
     while (!WindowShouldClose())
     {
+        switch(currentScreen){
+            case TITLE:
+                if (IsKeyPressed(KEY_SPACE))
+                {
+                    currentScreen = GAMEPLAY;
+                }
+            break;
+            case GAMEPLAY:
+            break;
+            default: break;
+        }
         BeginDrawing();
-
             ClearBackground(BLACK);
 
-            const char *scoreText = "SCORE";
-            int fontSize = 40;
-            int textWidth = MeasureText(scoreText, fontSize);
-            DrawText(scoreText, (screenWidth - textWidth) / 2, 10, fontSize, WHITE);
+            switch(currentScreen){
+                case TITLE:
+                    DrawText("TITLE SCREEN", 20, 20, 40, WHITE);
+                    DrawText("PRESS SPACE TO PLAY", 120, 220, 20, WHITE);
+                break;
+                case GAMEPLAY:                        
+                    const char *scoreText = "SCORE";
+                    int fontSize = 40;
+                    int textWidth = MeasureText(scoreText, fontSize);
+                    DrawText(scoreText, (screenWidth - textWidth) / 2, 10, fontSize, WHITE);
 
-            
-            DrawLine(screenWidth / 2, 0, screenWidth / 2, screenHeight, WHITE);
+                    
+                    DrawLine(screenWidth / 2, 0, screenWidth / 2, screenHeight, WHITE);
 
-            draw_ball(ball);
-            ball_movement(&ball, &score);
+                    draw_ball(ball);
+                    ball_movement(&ball, &score);
 
-            // enemy
-            draw_paddle(enemy);
-            enemy_paddle_movement(&enemy, &ball);
+                    // enemy
+                    draw_paddle(enemy);
+                    enemy_paddle_movement(&enemy, &ball);
 
-            // player
-            draw_paddle(player);
-            player_paddle_movement(&player);
-            DrawText(TextFormat("%d", score.player), screenWidth* 3/ 4, 100, 40, WHITE);
-            DrawText(TextFormat("%d", score.enemy), screenWidth / 4, 100, 40, WHITE);
+                    // player
+                    draw_paddle(player);
+                    player_paddle_movement(&player);
+                    DrawText(TextFormat("%d", score.player), screenWidth* 3/ 4, 100, 40, WHITE);
+                    DrawText(TextFormat("%d", score.enemy), screenWidth / 4, 100, 40, WHITE);
 
-            Vector2 vector = {ball.ballX, ball.ballY};
-            Rectangle rectangle = {player.x, player.y, player.width, player.height};
+                    Vector2 vector = {ball.ballX, ball.ballY};
+                    Rectangle rectangle = {player.x, player.y, player.width, player.height};
 
-            // collisison of paddles
-            if (CheckCollisionCircleRec(vector, ball.ball_radius, rectangle)){
-                ball.ball_speed_x *= -1;
+                    // collisison of paddles
+                    if (CheckCollisionCircleRec(vector, ball.ball_radius, rectangle)){
+                        ball.ball_speed_x *= -1;
+                    }
+
+                    Rectangle rectangle_enemy = {enemy.x, enemy.y, enemy.width, enemy.height};
+
+                    if (CheckCollisionCircleRec(vector, ball.ball_radius, rectangle_enemy)){
+                        ball.ball_speed_x *= -1;
+                    }
+                break;
+                default: break;
             }
 
-            Rectangle rectangle_enemy = {enemy.x, enemy.y, enemy.width, enemy.height};
-
-            if (CheckCollisionCircleRec(vector, ball.ball_radius, rectangle_enemy)){
-                ball.ball_speed_x *= -1;
-            }
 
         EndDrawing();
     }
